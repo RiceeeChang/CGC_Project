@@ -1,0 +1,372 @@
+/**
+ * JavaCC template file created by SF JavaCC plugin 1.5.17+ wizard for JavaCC 1.5.0+
+ */
+options
+{
+  JDK_VERSION = "1.5";
+  static = false;
+}
+
+PARSER_BEGIN(EG1)
+package javacccode;
+import java.util.*;
+import java.io.*;
+import datastructure.*;
+import cgcdb.*;
+
+
+
+
+public class EG1{
+	static CGCDB db;
+	static Protocol protocol;
+	static Condition condition;
+
+
+	// Result file .txt in /result/
+	static PrintStream logwriter;
+	static PrintStream picwriter;
+	static PrintStream PEwriter;
+	static PrintStream errorwriter;
+	static PrintStream TestListwriter;
+
+	static PrintStream Awriter;
+	static PrintStream Rwriter;
+	static PrintStream Mwriter;
+	static PrintStream Owriter;
+	static PrintStream O1writer;
+	static PrintStream O2writer;
+	static PrintStream O4writer;
+  	
+	public static void main(String args []) throws ParseException{
+
+		// Connect to Database and Get Data
+		db = new CGCDB();
+
+		// Initial Parser
+		StringReader init = new StringReader(" ");
+		EG1 parser = new EG1(init);
+
+
+		//-------- Setup Result Writer --------
+		File logfile = new File("result/log.txt");
+		File picfile = new File("result/misspic.txt");
+		File PEfile = new File("result/Parse_Error_log.txt");
+		File errorfile = new File("result/Error_log.txt");
+		File TestListfile = new File("result/TestList.txt");
+
+		File AListfile = new File("result/AList.txt");
+		File RListfile = new File("result/RList.txt");
+		File MListfile = new File("result/MList.txt");
+		File OListfile = new File("result/OList.txt");
+		File O1Listfile = new File("result/O1List.txt");
+		File O2Listfile = new File("result/O2List.txt");
+		File O4Listfile = new File("result/O4List.txt");
+		
+
+		
+		try{
+	        logwriter = new PrintStream(new BufferedOutputStream(new FileOutputStream(logfile)));
+			picwriter = new PrintStream(new BufferedOutputStream(new FileOutputStream(picfile)));
+			PEwriter = new PrintStream(new BufferedOutputStream(new FileOutputStream(PEfile)));
+			errorwriter = new PrintStream(new BufferedOutputStream(new FileOutputStream(errorfile)));
+			TestListwriter = new PrintStream(new BufferedOutputStream(new FileOutputStream(TestListfile)));
+		
+			Awriter = new PrintStream(new BufferedOutputStream(new FileOutputStream(AListfile)));
+			Rwriter = new PrintStream(new BufferedOutputStream(new FileOutputStream(RListfile)));
+			Mwriter = new PrintStream(new BufferedOutputStream(new FileOutputStream(MListfile)));
+			Owriter = new PrintStream(new BufferedOutputStream(new FileOutputStream(OListfile)));
+			O1writer = new PrintStream(new BufferedOutputStream(new FileOutputStream(O1Listfile)));
+			O2writer = new PrintStream(new BufferedOutputStream(new FileOutputStream(O2Listfile)));
+			O4writer = new PrintStream(new BufferedOutputStream(new FileOutputStream(O4Listfile)));
+	  	}catch(IOException e){
+	      	e.printStackTrace();	    }
+	    //-------------------------------------
+		// 檢查讀進來的PIC值是否正確
+		/*Map PICS = db.PICS.get("TS 34.121-2");
+		Iterator iter = PICS.entrySet().iterator(); 
+		while (iter.hasNext()) { 
+    		Map.Entry entry = (Map.Entry) iter.next(); 
+    		String key = (String)entry.getKey(); 
+    		Pic val = (Pic)entry.getValue();
+    		logwriter.println(key + " = " + val.getSupport()); 
+		}*/
+		//-------------------------------------
+		// 檢查讀進來的Condition
+		/*for(Condition con : db.CONDITIONS_3G){
+		  	logwriter.println(con.getCondition_desc());		}*/
+		//-------------------------------------
+		//-----------Solve Conditions----------
+		run();
+		//-------------------------------------
+		// Close All File Writer
+		logwriter.close();
+		picwriter.close();
+		PEwriter.close();
+		errorwriter.close();
+		TestListwriter.close();
+
+		Awriter.close();
+		Rwriter.close();
+		Mwriter.close();
+		Owriter.close();
+		O1writer.close();
+		O2writer.close();
+		O4writer.close();
+		//---------------------------------------
+
+		System.out.println("Done");
+	}//main
+
+	public static void solveCondition(Condition con){
+	  	
+		condition = con;
+		if(!con.isDone()){
+			try{
+				EG1 parser = new EG1(new StringReader(con.getCondition_desc()));
+	      	  	//EG1.ReInit();
+	        	con.setResult(parser.condition());
+				con.Done();
+	        	writeResult(con);
+	      	}catch (ParseException e){
+				PEwriter.println(con.getCondition_ID());
+				PEwriter.println(con.getCondition_desc());
+				PEwriter.println(e.getMessage());
+				PEwriter.println();
+	      	}catch (Error e){
+				errorwriter.println(con.getCondition_ID());
+				errorwriter.println(con.getCondition_desc());
+				errorwriter.println(e.getMessage());
+				errorwriter.println();
+      		}
+    	}	}
+	static private void run(){
+	  	int num = 0;
+	  	int total = 0;
+	  	for (Protocol p : Protocol.values()) {
+	  	  	protocol = p;
+
+	  	  	System.out.println(p.toString());
+	  	  	total+= db.getConditions(p).size();
+			Map conditions = db.getConditions(p);
+			Iterator iter = conditions.entrySet().iterator(); 
+			while (iter.hasNext()) { 
+    			Map.Entry entry = (Map.Entry) iter.next(); 
+    			String key = (String)entry.getKey(); 
+    			Condition val = (Condition)entry.getValue();
+    			solveCondition(val);
+    			num++;
+			}
+	 	}
+		
+	 	System.out.println("Total Condition: " + num + "/" + total);	}
+
+	static private void writeResult(Condition con){
+	  
+		switch(con.getResult()){
+		case A:
+			Awriter.println(con.getCondition_ID() + "\t" + con.getResult().getSymbol() +"\t"+con.getCondition_desc());
+			break;
+		case R:
+			Rwriter.println(con.getCondition_ID() + "\t" + con.getResult().getSymbol() +"\t"+con.getCondition_desc());
+			break;
+		case M:
+			Mwriter.println(con.getCondition_ID() + "\t" + con.getResult().getSymbol() +"\t"+con.getCondition_desc());
+			break;
+		case O:
+			Owriter.println(con.getCondition_ID() + "\t" + con.getResult().getSymbol() +"\t"+con.getCondition_desc());
+			break;
+		case O1:
+			O1writer.println(con.getCondition_ID() + "\t" + con.getResult().getSymbol() +"\t"+con.getCondition_desc());
+			break;
+		case O2:
+			O2writer.println(con.getCondition_ID() + "\t" + con.getResult().getSymbol() +"\t"+con.getCondition_desc());
+			break;
+		case O4:
+			O4writer.println(con.getCondition_ID() + "\t" + con.getResult().getSymbol() +"\t"+con.getCondition_desc());
+			break;
+		case VOID:
+		case NA:
+		default:
+			break;		}			
+	}
+}//class
+
+PARSER_END(EG1)
+
+SKIP :
+{
+  " "
+| "\r"
+| "\t"
+| "\n"
+}
+
+TOKEN :
+{
+  < IF : "IF" >
+| < THEN : "THEN" >
+| < ELSE : "ELSE" >
+| < AND : "AND" >
+| < OR : "OR" >
+| < NOT : "NOT" >
+}
+
+TOKEN :// Result Symbol
+{
+  < RESULT : < A >|< NA >|< R >|< M >|< O >|< O1 >|< O2 >|< O4 >|< REF >>
+| < #REF : "R("<ANYKEY>")">
+| < #A : "A" >
+| < #NA : "N/A" >
+| < #R : "R" >
+| < #M : "M" >
+| < #O : "O" >
+| < #O1 : "O.1">
+| < #O2 : "O.2">
+| < #O4 : "O.4">
+
+
+| < VOID: "Void">
+| < #ANYKEY: ~[]>}
+
+TOKEN :
+{
+  //< PIC : ((< DIGIT >|< LETTER >| < SPEC_CHAR >)+)>
+
+  < P1 : < LETTER >"."(< DIGIT >)+("-"| "." | < DIGIT > | < LETTER >)* "/" ("." | < DIGIT > | < LETTER >)*>
+| < P2 : "C"(< DIGIT >)+(< LETTER >)* | "UC"(< DIGIT >)+ | "C_RF"(< DIGIT >)+ >
+| < NUMBER : (< DIGIT >)+ >
+| < #SOME : "["(< DIGIT >)+"]" >
+| < #DIGIT : [ "0"-"9" ] >
+| < #LETTER : [ "A"-"Z" , "a"-"z" ]>
+| < #SPEC_CHAR : [ ",", ".", "/", "[" , "]", "_", "-"]>
+}
+
+Result condition() :{
+	Result result;
+}{
+	result = statement() <EOF>{
+    	return result;
+  	}
+}
+
+Result statement() :{
+  Result b;
+}{
+  	b = select_statement(){ return b;}
+| "(" b = select_statement() ")"{ return b;}
+| b = result(){ return b;}
+| "Void"{ return Result.VOID;}
+}
+
+Result select_statement() :{
+	boolean a;
+	Result b, c;
+}{
+	< IF >
+	a = expression()
+	< THEN >
+	b = statement()	
+	< ELSE>
+	c = statement(){
+	  	if(a)
+	  		return b;
+	  	else
+	  		return c;	}
+}
+
+boolean expression() :{
+	boolean a,b;
+}{
+	a = term() (< OR > b = term(){ a = a|b; })* {
+		return a;
+	}
+}
+
+boolean term():{
+  	boolean a, b;}{
+  	a = factor() (< AND > b = factor(){ a = a&b;})*{
+  	  	return a;  	}}
+
+boolean factor() :{
+	boolean b;
+}{
+  	"("b = expression()")"	{ return b;}
+| 	b = pic() { return b;}
+| 	< NOT > b = factor(){ return !b;}
+}
+
+Result result():{
+    Token t;
+}{
+	t = < RESULT > {
+	  	logwriter.println( condition.getCondition_ID() + " " + t.toString() + " " + Result.BySymbol(t.toString()).getSymbol());
+		return Result.BySymbol(t.toString());
+	}
+}
+
+boolean pic():{	Token pic;
+	Token ver;
+	HashMap<String, Pic> PICS;
+	Pic p;
+}{
+  	pic = < P1 >{ // normal PICS
+		
+		if( protocol == Protocol._2G){
+		    
+		  	PICS = db.PICS.get("2G");		}else{
+		  	PICS = db.PICS.get(condition.getTable_spec());		}
+
+		if( PICS == null){
+	  		picwriter.println(pic.toString() + " is null.");  
+			return false;		}
+		
+		p = PICS.get(pic.toString());
+		
+		if(p == null){
+	  		picwriter.println(pic.toString() + " is null.");  
+			return false;
+		}else{
+  			return p.getSupport();
+  		}  	}
+|   "[" ver = < NUMBER > "]" pic = < P1 >{ // Reference other table PICS
+  		int version = Integer.parseInt(ver.toString());
+		switch(version){
+		case 52:
+			PICS = db.PICS.get("2G");
+			break;
+		case 21:
+			PICS = db.PICS.get("TS 34.121-2");
+			break;
+		case 23:
+			PICS = db.PICS.get("TS 34.123-2");
+			break;
+		case 56:
+			PICS = db.PICS.get("TS 36.523-1");
+			break;
+		case 8:
+			PICS = db.PICS.get("TS 34.123-2");
+			break;
+		default:
+			picwriter.println(pic.toString() + " is null.");  
+			return false;		}
+
+		if(PICS == null){
+		  	picwriter.println(pic.toString() + " is null.");  
+			return false;		}
+		
+		p = PICS.get(pic.toString());
+		
+		if(p == null){
+	  		picwriter.println(pic.toString() + " is null.");  
+			return false;
+		}else
+  			return p.getSupport();
+		
+	}
+| 	pic = < P2 >{
+  		Condition con = db.getConditions(protocol).get(pic.toString());
+		if(!con.isDone()){			solveCondition(con);
+		}
+		return con.getResult().getValue();
+	}}
