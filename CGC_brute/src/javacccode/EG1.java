@@ -2,194 +2,46 @@
 package javacccode;
 import java.util.*;
 import java.io.*;
-import datastructure.*;
 import cgcdb.*;
 
 
 
 
 public class EG1 implements EG1Constants {
-        static CGCDB db;
-        static Protocol protocol;
-        static Condition condition;
 
+        Standard standard;
+        Project project;
+        Protocol protocol;
+        Condition condition;
 
-        // Result file .txt in /result/
-        static PrintStream logwriter;
-        static PrintStream picwriter;
-        static PrintStream PEwriter;
-        static PrintStream errorwriter;
-        static PrintStream TestListwriter;
+        ArrayList<ConditionError> ERROR_LIST;
 
-        static PrintStream Awriter;
-        static PrintStream Rwriter;
-        static PrintStream Mwriter;
-        static PrintStream Owriter;
-        static PrintStream O1writer;
-        static PrintStream O2writer;
-        static PrintStream O4writer;
+        public EG1(Standard standard, Project project, Condition condition, ArrayList<ConditionError> ERROR_LIST) throws ParseException{
+                this(new StringReader(condition.getCondition_desc()));
 
-        public static void main(String args []) throws ParseException{
+                this.standard = standard;
+                this.project = project;
+                this.condition = condition;
+                this.ERROR_LIST = ERROR_LIST;
 
-                // Connect to Database and Get Data
-                db = new CGCDB();
-
-                // Initial Parser
-                StringReader init = new StringReader(" ");
-                EG1 parser = new EG1(init);
-
-
-                //-------- Setup Result Writer --------
-                File logfile = new File("result/log.txt");
-                File picfile = new File("result/misspic.txt");
-                File PEfile = new File("result/Parse_Error_log.txt");
-                File errorfile = new File("result/Error_log.txt");
-                File TestListfile = new File("result/TestList.txt");
-
-                File AListfile = new File("result/AList.txt");
-                File RListfile = new File("result/RList.txt");
-                File MListfile = new File("result/MList.txt");
-                File OListfile = new File("result/OList.txt");
-                File O1Listfile = new File("result/O1List.txt");
-                File O2Listfile = new File("result/O2List.txt");
-                File O4Listfile = new File("result/O4List.txt");
-
-
-
-                try{
-                logwriter = new PrintStream(new BufferedOutputStream(new FileOutputStream(logfile)));
-                        picwriter = new PrintStream(new BufferedOutputStream(new FileOutputStream(picfile)));
-                        PEwriter = new PrintStream(new BufferedOutputStream(new FileOutputStream(PEfile)));
-                        errorwriter = new PrintStream(new BufferedOutputStream(new FileOutputStream(errorfile)));
-                        TestListwriter = new PrintStream(new BufferedOutputStream(new FileOutputStream(TestListfile)));
-
-                        Awriter = new PrintStream(new BufferedOutputStream(new FileOutputStream(AListfile)));
-                        Rwriter = new PrintStream(new BufferedOutputStream(new FileOutputStream(RListfile)));
-                        Mwriter = new PrintStream(new BufferedOutputStream(new FileOutputStream(MListfile)));
-                        Owriter = new PrintStream(new BufferedOutputStream(new FileOutputStream(OListfile)));
-                        O1writer = new PrintStream(new BufferedOutputStream(new FileOutputStream(O1Listfile)));
-                        O2writer = new PrintStream(new BufferedOutputStream(new FileOutputStream(O2Listfile)));
-                        O4writer = new PrintStream(new BufferedOutputStream(new FileOutputStream(O4Listfile)));
-                }catch(IOException e){
-                e.printStackTrace();
-            }
-            //-------------------------------------
-                // 檢查讀進來的PIC值是否正確
-                /*Map PICS = db.PICS.get("TS 34.121-2");
-		Iterator iter = PICS.entrySet().iterator(); 
-		while (iter.hasNext()) { 
-    		Map.Entry entry = (Map.Entry) iter.next(); 
-    		String key = (String)entry.getKey(); 
-    		Pic val = (Pic)entry.getValue();
-    		logwriter.println(key + " = " + val.getSupport()); 
-		}*/
-                //-------------------------------------
-                // 檢查讀進來的Condition
-                /*for(Condition con : db.CONDITIONS_3G){
-		  	logwriter.println(con.getCondition_desc());		}*/
-                //-------------------------------------
-                //-----------Solve Conditions----------
-                run();
-                //-------------------------------------
-                // Close All File Writer
-                logwriter.close();
-                picwriter.close();
-                PEwriter.close();
-                errorwriter.close();
-                TestListwriter.close();
-
-                Awriter.close();
-                Rwriter.close();
-                Mwriter.close();
-                Owriter.close();
-                O1writer.close();
-                O2writer.close();
-                O4writer.close();
-                //---------------------------------------
-
-                System.out.println("Done");
-        }//main
-
-        public static void solveCondition(Condition con){
-
-                condition = con;
-                if(!con.isDone()){
-                        try{
-                                EG1 parser = new EG1(new StringReader(con.getCondition_desc()));
-                        //EG1.ReInit();
-                        con.setResult(parser.condition());
-                                con.Done();
-                        writeResult(con);
-                }catch (ParseException e){
-                                PEwriter.println(con.getCondition_ID());
-                                PEwriter.println(con.getCondition_desc());
-                                PEwriter.println(e.getMessage());
-                                PEwriter.println();
-                }catch (Error e){
-                                errorwriter.println(con.getCondition_ID());
-                                errorwriter.println(con.getCondition_desc());
-                                errorwriter.println(e.getMessage());
-                                errorwriter.println();
-                }
-        }
-        }
-        static private void run(){
-                int num = 0;
-                int total = 0;
-                for (Protocol p : Protocol.values()) {
-                        protocol = p;
-
-                        System.out.println(p.toString());
-                        total+= db.getConditions(p).size();
-                        Map conditions = db.getConditions(p);
-                        Iterator iter = conditions.entrySet().iterator();
-                        while (iter.hasNext()) {
-                        Map.Entry entry = (Map.Entry) iter.next();
-                        String key = (String)entry.getKey();
-                        Condition val = (Condition)entry.getValue();
-                        solveCondition(val);
-                        num++;
-                        }
-                }
-
-                System.out.println("Total Condition: " + num + "/" + total);
-        }
-
-        static private void writeResult(Condition con){
-
-                switch(con.getResult()){
-                case A:
-                        Awriter.println(con.getCondition_ID() + "\u005ct" + con.getResult().getSymbol() +"\u005ct"+con.getCondition_desc());
-                        break;
-                case R:
-                        Rwriter.println(con.getCondition_ID() + "\u005ct" + con.getResult().getSymbol() +"\u005ct"+con.getCondition_desc());
-                        break;
-                case M:
-                        Mwriter.println(con.getCondition_ID() + "\u005ct" + con.getResult().getSymbol() +"\u005ct"+con.getCondition_desc());
-                        break;
-                case O:
-                        Owriter.println(con.getCondition_ID() + "\u005ct" + con.getResult().getSymbol() +"\u005ct"+con.getCondition_desc());
-                        break;
-                case O1:
-                        O1writer.println(con.getCondition_ID() + "\u005ct" + con.getResult().getSymbol() +"\u005ct"+con.getCondition_desc());
-                        break;
-                case O2:
-                        O2writer.println(con.getCondition_ID() + "\u005ct" + con.getResult().getSymbol() +"\u005ct"+con.getCondition_desc());
-                        break;
-                case O4:
-                        O4writer.println(con.getCondition_ID() + "\u005ct" + con.getResult().getSymbol() +"\u005ct"+con.getCondition_desc());
-                        break;
-                case VOID:
-                case NA:
-                default:
-                        break;
-                }
+                this.protocol = condition.getProtocol();
         }
 
   final public Result condition() throws ParseException {
         Result result;
     result = statement();
-    jj_consume_token(0);
+    switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+    case 0:
+      jj_consume_token(0);
+      break;
+    case 31:
+      jj_consume_token(31);
+      break;
+    default:
+      jj_la1[0] = jj_gen;
+      jj_consume_token(-1);
+      throw new ParseException();
+    }
         {if (true) return result;}
     throw new Error("Missing return statement in function");
   }
@@ -201,10 +53,10 @@ public class EG1 implements EG1Constants {
       b = select_statement();
                                 {if (true) return b;}
       break;
-    case 30:
-      jj_consume_token(30);
+    case 32:
+      jj_consume_token(32);
       b = select_statement();
-      jj_consume_token(31);
+      jj_consume_token(33);
                                   {if (true) return b;}
       break;
     case RESULT:
@@ -216,7 +68,7 @@ public class EG1 implements EG1Constants {
           {if (true) return Result.VOID;}
       break;
     default:
-      jj_la1[0] = jj_gen;
+      jj_la1[1] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -249,7 +101,7 @@ public class EG1 implements EG1Constants {
         ;
         break;
       default:
-        jj_la1[1] = jj_gen;
+        jj_la1[2] = jj_gen;
         break label_1;
       }
       jj_consume_token(OR);
@@ -270,7 +122,7 @@ public class EG1 implements EG1Constants {
         ;
         break;
       default:
-        jj_la1[2] = jj_gen;
+        jj_la1[3] = jj_gen;
         break label_2;
       }
       jj_consume_token(AND);
@@ -284,15 +136,16 @@ public class EG1 implements EG1Constants {
   final public boolean factor() throws ParseException {
         boolean b;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-    case 30:
-      jj_consume_token(30);
+    case 32:
+      jj_consume_token(32);
       b = expression();
-      jj_consume_token(31);
+      jj_consume_token(33);
                                   {if (true) return b;}
       break;
     case P1:
     case P2:
-    case 32:
+    case P3:
+    case 34:
       b = pic();
                     {if (true) return b;}
       break;
@@ -302,7 +155,7 @@ public class EG1 implements EG1Constants {
                               {if (true) return !b;}
       break;
     default:
-      jj_la1[3] = jj_gen;
+      jj_la1[4] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -312,94 +165,65 @@ public class EG1 implements EG1Constants {
   final public Result result() throws ParseException {
     Token t;
     t = jj_consume_token(RESULT);
-                logwriter.println( condition.getCondition_ID() + " " + t.toString() + " " + Result.BySymbol(t.toString()).getSymbol());
                 {if (true) return Result.BySymbol(t.toString());}
     throw new Error("Missing return statement in function");
   }
 
   final public boolean pic() throws ParseException {
+        Condition con;
         Token pic;
         Token ver;
-        HashMap<String, Pic> PICS;
         Pic p;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case P1:
       pic = jj_consume_token(P1);
                       // normal PICS
 
-                if( protocol == Protocol._2G){
-
-                        PICS = db.PICS.get("2G");
-                }else{
-                        PICS = db.PICS.get(condition.getTable_spec());
-                }
-
-                if( PICS == null){
-                        picwriter.println(pic.toString() + " is null.");
-                        {if (true) return false;}
-                }
-
-                p = PICS.get(pic.toString());
+                p = project.getPic(pic.toString(), condition.getTable_Spec());
 
                 if(p == null){
-                        picwriter.println(pic.toString() + " is null.");
+                        ERROR_LIST.add(new ConditionError(project.getProject_Code(), condition.getTable_Spec(), condition.getCondition_ID(), pic.toString() + " is null."));
+                        //nullPic.put(pic.toString(), pic.toString());
                         {if (true) return false;}
                 }else{
                         {if (true) return p.getSupport();}
                 }
       break;
-    case 32:
-      jj_consume_token(32);
+    case 34:
+      jj_consume_token(34);
       ver = jj_consume_token(NUMBER);
-      jj_consume_token(33);
+      jj_consume_token(35);
       pic = jj_consume_token(P1);
                                            // Reference other table PICS
 
                 int version = Integer.parseInt(ver.toString());
-                switch(version){
-                case 52:
-                        PICS = db.PICS.get("2G");
-                        break;
-                case 21:
-                        PICS = db.PICS.get("TS 34.121-2");
-                        break;
-                case 23:
-                        PICS = db.PICS.get("TS 34.123-2");
-                        break;
-                case 56:
-                        PICS = db.PICS.get("TS 36.523-1");
-                        break;
-                case 8:
-                        PICS = db.PICS.get("TS 34.123-2");
-                        break;
-                default:
-                        picwriter.println(pic.toString() + " is null.");
-                        {if (true) return false;}
-                }
-
-                if(PICS == null){
-                        picwriter.println(pic.toString() + " is null.");
-                        {if (true) return false;}
-                }
-
-                p = PICS.get(pic.toString());
+                p = project.getPic(pic.toString(), standard.getRefSpec("["+version+"]"));
 
                 if(p == null){
-                        picwriter.println(pic.toString() + " is null.");
+                        ERROR_LIST.add(new ConditionError(project.getProject_Code(), condition.getTable_Spec(), condition.getCondition_ID(), pic.toString() + " is null."));
+                        //nullPic.put(pic.toString(), pic.toString());
                         {if (true) return false;}
                 }else
                         {if (true) return p.getSupport();}
       break;
     case P2:
       pic = jj_consume_token(P2);
-                Condition con = db.getConditions(protocol).get(pic.toString());
+                con = standard.getCondition(pic.toString(), condition.getTable_Spec());
                 if(!con.isDone()){
-                        solveCondition(con);
+                        ConditionSolver.solveCondition(standard, project, con, ERROR_LIST);
+                }
+                {if (true) return con.getResult().getValue();}
+      break;
+    case P3:
+      pic = jj_consume_token(P3);
+                con = standard.getCondition(pic.toString(), "2G");
+                if(con == null){
+                        ConditionSolver.solveCondition(standard, project, con, ERROR_LIST);
                 }
                 {if (true) return con.getResult().getValue();}
       break;
     default:
-      jj_la1[4] = jj_gen;
+      jj_la1[5] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -415,7 +239,7 @@ public class EG1 implements EG1Constants {
   public Token jj_nt;
   private int jj_ntk;
   private int jj_gen;
-  final private int[] jj_la1 = new int[5];
+  final private int[] jj_la1 = new int[6];
   static private int[] jj_la1_0;
   static private int[] jj_la1_1;
   static {
@@ -423,10 +247,10 @@ public class EG1 implements EG1Constants {
       jj_la1_init_1();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0x40200820,0x200,0x100,0x41800400,0x1800000,};
+      jj_la1_0 = new int[] {0x80000001,0x200820,0x200,0x100,0x3800400,0x3800000,};
    }
    private static void jj_la1_init_1() {
-      jj_la1_1 = new int[] {0x0,0x0,0x0,0x1,0x1,};
+      jj_la1_1 = new int[] {0x0,0x1,0x0,0x0,0x5,0x4,};
    }
 
   /** Constructor with InputStream. */
@@ -440,7 +264,7 @@ public class EG1 implements EG1Constants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 5; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 6; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -454,7 +278,7 @@ public class EG1 implements EG1Constants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 5; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 6; i++) jj_la1[i] = -1;
   }
 
   /** Constructor. */
@@ -464,7 +288,7 @@ public class EG1 implements EG1Constants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 5; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 6; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -474,7 +298,7 @@ public class EG1 implements EG1Constants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 5; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 6; i++) jj_la1[i] = -1;
   }
 
   /** Constructor with generated Token Manager. */
@@ -483,7 +307,7 @@ public class EG1 implements EG1Constants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 5; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 6; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -492,7 +316,7 @@ public class EG1 implements EG1Constants {
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 5; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 6; i++) jj_la1[i] = -1;
   }
 
   private Token jj_consume_token(int kind) throws ParseException {
@@ -543,12 +367,12 @@ public class EG1 implements EG1Constants {
   /** Generate ParseException. */
   public ParseException generateParseException() {
     jj_expentries.clear();
-    boolean[] la1tokens = new boolean[34];
+    boolean[] la1tokens = new boolean[36];
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
     }
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 6; i++) {
       if (jj_la1[i] == jj_gen) {
         for (int j = 0; j < 32; j++) {
           if ((jj_la1_0[i] & (1<<j)) != 0) {
@@ -560,7 +384,7 @@ public class EG1 implements EG1Constants {
         }
       }
     }
-    for (int i = 0; i < 34; i++) {
+    for (int i = 0; i < 36; i++) {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;

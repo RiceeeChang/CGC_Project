@@ -51,15 +51,17 @@ public interface EG1Constants {
   /** RegularExpression Id. */
   int P2 = 24;
   /** RegularExpression Id. */
-  int NUMBER = 25;
+  int P3 = 25;
   /** RegularExpression Id. */
-  int SOME = 26;
+  int NUMBER = 26;
   /** RegularExpression Id. */
-  int DIGIT = 27;
+  int SOME = 27;
   /** RegularExpression Id. */
-  int LETTER = 28;
+  int DIGIT = 28;
   /** RegularExpression Id. */
-  int SPEC_CHAR = 29;
+  int LETTER = 29;
+  /** RegularExpression Id. */
+  int SPEC_CHAR = 30;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -75,7 +77,7 @@ public interface EG1Constants {
     "\"THEN\"",
     "\"ELSE\"",
     "\"AND\"",
-    "\"OR\"",
+    "<OR>",
     "\"NOT\"",
     "<RESULT>",
     "<REF>",
@@ -91,11 +93,13 @@ public interface EG1Constants {
     "<ANYKEY>",
     "<P1>",
     "<P2>",
+    "<P3>",
     "<NUMBER>",
     "<SOME>",
     "<DIGIT>",
     "<LETTER>",
     "<SPEC_CHAR>",
+    "\".\"",
     "\"(\"",
     "\")\"",
     "\"[\"",
